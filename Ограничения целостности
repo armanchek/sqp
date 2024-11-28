@@ -1,0 +1,11 @@
+3. Ограничения целостности
+
+Для обеспечения целостности данных установим внешние ключи:
+	•	В таблице Reservations поле user_id является внешним ключом, ссылающимся на таблицу Users.
+	•	В таблице Reservations поле admin_id является внешним ключом, ссылающимся на таблицу Admins.
+	•	В таблице Places поле reservation_id является внешним ключом, ссылающимся на таблицу Reservations.
+
+Пример sql: 
+ALTER TABLE Reservations ADD CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES Users(id);
+ALTER TABLE Reservations ADD CONSTRAINT fk_admin_id FOREIGN KEY (admin_id) REFERENCES Admins(id);
+ALTER TABLE Places ADD CONSTRAINT fk_reservation_id FOREIGN KEY (reservation_id) REFERENCES Reservations(id);
