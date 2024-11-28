@@ -1,0 +1,63 @@
+Реализация безопасности для системы бронирования и отчетности
+
+1. Разделение прав доступа между клиентами и администраторами
+
+Для управления доступом в системе используется модель ролей. Клиенты и администраторы будут иметь разные уровни доступа к данным и возможностям системы:
+	•	Клиенты (Users):
+	•	Могут бронировать места, просматривать свои бронирования, отправлять отчеты.
+	•	Не могут видеть данные других клиентов или управлять системой.
+	•	Администраторы (Admins):
+	•	Имеют доступ к управлению всеми бронированиями.
+	•	Могут редактировать, отклонять бронирования, просматривать информацию о всех клиентах, блокировать пользователей.
+	•	Имеют доступ к настройке ограничений для клиентов.
+
+Пример создания ролей и прав доступа:
+CREATE ROLE client_role;
+
+GRANT SELECT, INSERT, UPDATE ON Reservations TO client_role;
+GRANT SELECT ON Places TO client_role;
+GRANT SELECT ON Users TO client_role WHERE id = CURRENT_USER;
+
+CREATE ROLE admin_role;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO admin_role;
+
+GRANT client_role TO 'user_name';  
+GRANT admin_role TO 'admin_name'; 
+2. Защита данных от несанкционированного доступа через представления и роли
+
+Для ограничения доступа к данным можно использовать представления (views), которые позволяют пользователям видеть только те данные, к которым у них есть доступ.
+
+Пример представлений для клиентов и администраторов:
+
+	Клиенты могут видеть только свои бронирования:
+CREATE VIEW client_reservations AS
+SELECT id, user_id, timing, status
+FROM Reservations
+WHERE user_id = CURRENT_USER;
+
+GRANT SELECT ON client_reservations TO client_role;
+Администраторы могут видеть все бронирования и полную информацию о пользователях:
+CREATE VIEW admin_reservations AS
+SELECT Reservations.*, Users.name, Users.group, Users.banned
+FROM Reservations
+JOIN Users ON Reservations.user_id = Users.id;
+GRANT SELECT ON admin_reservations TO admin_role;
+4. Защита от несанкционированного доступа
+
+Дополнительно можно реализовать проверку на уровне запросов или использовать триггеры, которые будут проверять права пользователя перед выполнением операций. Например, при бронировании или редактировании записи будет проверяться, имеет ли пользователь соответствующие права.
+
+Пример триггера для проверки прав:
+CREATE OR REPLACE FUNCTION check_reservation_privileges() 
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.user_id != CURRENT_USER THEN
+    RAISE EXCEPTION 'You do not have permission to modify this reservation';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER check_privileges
+BEFORE UPDATE ON Reservations
+FOR EACH ROW EXECUTE FUNCTION check_reservation_privileges();
