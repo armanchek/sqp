@@ -1,0 +1,13 @@
+CREATE OR REPLACE FUNCTION check_reservation_privileges() 
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.user_id != CURRENT_USER THEN
+    RAISE EXCEPTION 'You do not have permission to modify this reservation';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER check_privileges
+BEFORE UPDATE ON Reservations
+FOR EACH ROW EXECUTE FUNCTION check_reservation_privileges();
