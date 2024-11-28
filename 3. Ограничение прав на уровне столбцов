@@ -1,0 +1,6 @@
+Администраторы могут видеть все бронирования и полную информацию о пользователях:
+CREATE VIEW admin_reservations AS
+SELECT Reservations.*, Users.name, Users.group, Users.banned
+FROM Reservations
+JOIN Users ON Reservations.user_id = Users.id;
+GRANT SELECT ON admin_reservations TO admin_role;
