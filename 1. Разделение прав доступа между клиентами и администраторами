@@ -1,0 +1,12 @@
+CREATE ROLE client_role;
+
+GRANT SELECT, INSERT, UPDATE ON Reservations TO client_role;
+GRANT SELECT ON Places TO client_role;
+GRANT SELECT ON Users TO client_role WHERE id = CURRENT_USER;
+
+CREATE ROLE admin_role;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO admin_role;
+
+GRANT client_role TO 'user_name';  
+GRANT admin_role TO 'admin_name'; 
