@@ -1,0 +1,6 @@
+CREATE VIEW client_reservations AS
+SELECT id, user_id, timing, status
+FROM Reservations
+WHERE user_id = CURRENT_USER;
+
+GRANT SELECT ON client_reservations TO client_role;
